@@ -30,7 +30,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
-		// TODO Auto-generated method stub
 		List<Problema.Campo> campos = new ArrayList<>();
 
 		for (ObjectError error : ex.getBindingResult().getAllErrors()) {
