@@ -13,7 +13,7 @@ const Home = () => {
           <p className="lead"></p>
           <hr/>
           <p></p>
-          <Link className= "btn btn-primary btn-lg"to="/formulario">
+          <Link className="btn btn-primary btn-lg" to="/formulario">
           Acessar formulario
         </Link>
       </div>
