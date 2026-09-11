@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: projetopoo
+      MYSQL_USER: projetopoo
+      MYSQL_PASSWORD: ${DB_PASSWORD:-projetopoo}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-projetopoo}
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-p${DB_ROOT_PASSWORD:-projetopoo}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: on-failure
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/projetopoo?createDatabaseIfNotExist=true&serverTimezone=UTC
+      DB_USERNAME: projetopoo
+      DB_PASSWORD: ${DB_PASSWORD:-projetopoo}
+    ports:
+      - '8080:8080'
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: on-failure
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:

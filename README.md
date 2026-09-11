@@ -23,6 +23,7 @@ currículo.
 - [Pré-requisitos](#pré-requisitos)
 - [Instalação](#instalação)
 - [Como executar o projeto](#como-executar-o-projeto)
+- [Como executar com Docker](#como-executar-com-docker)
 - [Como rodar os testes](#como-rodar-os-testes)
 - [Estrutura de pastas](#estrutura-de-pastas)
 - [Roadmap / melhorias futuras](#roadmap--melhorias-futuras)
@@ -77,11 +78,16 @@ currículo.
 - **MySQL** 5.7+ ou 8.x em execução localmente (ou acessível via rede) para o modo de
   desenvolvimento/produção do backend. Não é necessário para rodar os testes, que usam
   um banco H2 em memória.
-- **Node.js 16.x** (LTS) e **Yarn** para o frontend. Versões muito recentes do Node
-  (20+) podem falhar ao rodar `yarn build`, por uma incompatibilidade conhecida entre
-  `react-scripts@4` (Create React App) e o novo sistema de resolução de módulos
+- **Node.js 16.x** (LTS) e **npm** para o frontend. Versões muito recentes do Node
+  (20+) podem falhar ao rodar `npm run build`, por uma incompatibilidade conhecida
+  entre `react-scripts@4` (Create React App) e o novo sistema de resolução de módulos
   (`exports`) de dependências transitivas do Node.js — o build foi validado com Node
-  16 neste repositório.
+  16 neste repositório. Também é necessário instalar com `npm install
+  --legacy-peer-deps` (o `package.json` fixa `babel-preset-react-app` e
+  `@types/minimatch` via `overrides` para evitar quebras de build causadas por
+  releases mais recentes dessas dependências transitivas).
+- **Docker** e **Docker Compose** (opcional) para rodar backend, frontend e MySQL
+  já orquestrados — veja [Como executar com Docker](#como-executar-com-docker).
 
 ## Instalação
 
@@ -103,7 +109,7 @@ cd backend
 
 ```bash
 cd frontend
-yarn install
+npm install --legacy-peer-deps
 ```
 
 ## Como executar o projeto
@@ -130,7 +136,7 @@ yarn install
 
 ```bash
 cd frontend
-yarn start
+npm start
 ```
 
 A aplicação ficará disponível em `http://localhost:3000`.
@@ -138,6 +144,28 @@ A aplicação ficará disponível em `http://localhost:3000`.
 > **Nota:** atualmente o formulário do frontend não envia dados para a API do
 > backend — os dois módulos ainda não estão integrados (veja o
 > [Roadmap](#roadmap--melhorias-futuras)).
+
+## Como executar com Docker
+
+O repositório inclui `Dockerfile`s para o backend e o frontend, além de um
+`docker-compose.yml` na raiz que sobe os três serviços (MySQL, backend e
+frontend) já configurados para conversar entre si:
+
+```bash
+docker compose up --build
+```
+
+- **MySQL** fica disponível em `localhost:3306` (schema `projetopoo`, criado
+  automaticamente pelas migrações Flyway), com os dados persistidos no volume
+  nomeado `mysql-data`.
+- **Backend** fica disponível em `http://localhost:8080/curriculo`. A senha do
+  banco não fica mais fixa no `1234567` do `application.properties` — o
+  `docker-compose.yml` define `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` via
+  variáveis de ambiente (com um valor padrão para uso local, sobrescrevível
+  com um arquivo `.env` ou variáveis de ambiente do shell).
+- **Frontend** fica disponível em `http://localhost:3000`, servido por Nginx a
+  partir do build de produção. O Nginx também faz proxy de `/curriculo` para o
+  serviço `backend`, para validar a conectividade entre os dois containers.
 
 ## Como rodar os testes
 
@@ -157,13 +185,14 @@ cd backend
 
 **O frontend não possui testes automatizados no momento.** O projeto foi
 inicializado a partir do Create React App, que oferece suporte pronto a
-testes com Jest e React Testing Library (`yarn test`), mas nenhum arquivo de
+testes com Jest e React Testing Library (`npm test`), mas nenhum arquivo de
 teste foi escrito até agora.
 
 ## Estrutura de pastas
 
 ```
 gestao-curriculos-spring-react/
+├── .github/workflows/ci.yml      Pipeline de CI (testes do backend, build do frontend)
 ├── backend/                      API REST em Spring Boot
 │   ├── src/main/java/com/projeto/projetofinal/
 │   │   ├── api/controller/       Controllers REST (CurriculoController)
@@ -173,14 +202,18 @@ gestao-curriculos-spring-react/
 │   │   ├── api/model/exception/  Exceções de negócio
 │   │   └── domain/model/         Entidades JPA (Curriculo)
 │   ├── src/main/resources/       application.properties, mensagens e migrações Flyway
-│   └── src/test/                 Testes automatizados (contexto H2 em memória)
+│   ├── src/test/                 Testes automatizados (contexto H2 em memória)
+│   └── Dockerfile                Build multi-stage (Maven → JRE)
 ├── frontend/                     Aplicação web em React + TypeScript
-│   └── src/
-│       ├── componets/            Componentes reutilizáveis (Form, NavBar, Footer)
-│       ├── pages/                Páginas (Home, Forms)
-│       ├── assets/                Estilos globais
-│       ├── App.tsx / Routes.tsx  Composição da aplicação e rotas
-│       └── index.tsx             Ponto de entrada
+│   ├── src/
+│   │   ├── componets/            Componentes reutilizáveis (Form, NavBar, Footer)
+│   │   ├── pages/                Páginas (Home, Forms)
+│   │   ├── assets/                Estilos globais
+│   │   ├── App.tsx / Routes.tsx  Composição da aplicação e rotas
+│   │   └── index.tsx             Ponto de entrada
+│   ├── Dockerfile                Build multi-stage (Node → Nginx)
+│   └── nginx.conf                Serve o build e faz proxy de /curriculo para o backend
+├── docker-compose.yml            Orquestra mysql + backend + frontend
 ├── docs/images/                  Capturas de tela do projeto (ver README da pasta)
 ├── LICENSE
 └── README.md
@@ -197,8 +230,10 @@ gestao-curriculos-spring-react/
 - [ ] Configurar CORS explicitamente no backend, hoje necessário para uma futura
       integração entre os dois módulos rodando em origens diferentes.
 - [ ] Adicionar paginação e busca na listagem de currículos.
-- [ ] Configurar integração contínua (CI) para rodar build e testes de backend e
-      frontend a cada push.
+- [x] Configurar integração contínua (CI) para rodar build e testes de backend e
+      frontend a cada push (`.github/workflows/ci.yml`).
+- [x] Adicionar `Dockerfile`s e `docker-compose.yml` para rodar backend, frontend
+      e MySQL localmente com um único comando.
 
 ## Contribuição
 
