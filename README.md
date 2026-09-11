@@ -88,8 +88,8 @@ currículo.
 Clone o repositório:
 
 ```bash
-git clone https://github.com/Carolaynebarret/Projeto-Final-POO-.git
-cd Projeto-Final-POO-
+git clone https://github.com/Carolaynebarret/gestao-curriculos-spring-react.git
+cd gestao-curriculos-spring-react
 ```
 
 ### Backend
@@ -163,7 +163,7 @@ teste foi escrito até agora.
 ## Estrutura de pastas
 
 ```
-Projeto-Final-POO-/
+gestao-curriculos-spring-react/
 ├── backend/                      API REST em Spring Boot
 │   ├── src/main/java/com/projeto/projetofinal/
 │   │   ├── api/controller/       Controllers REST (CurriculoController)
