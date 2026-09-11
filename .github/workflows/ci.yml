@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [master, ai/fixes]
+  pull_request:
+    branches: [master]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: maven
+
+      - name: Roda os testes (H2 em memória, sem depender de MySQL)
+        run: ./mvnw -B test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # react-scripts@4 (Create React App) não é compatível com o
+          # resolvedor de módulos "exports" do Node 20+ (ver README).
+          node-version: 16
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci --legacy-peer-deps
+
+      - run: npm run build
