@@ -2,7 +2,7 @@ const Footer = () => {
     return (
         <footer className="card footer fixed-bottom">
         <div className="card-title">
-            <p className="tcard-text">App desenvolvido por
+            <div className="tcard-text">App desenvolvido por
              <div>
             <a href="https://github.com/AdrielLeao" target="_blank" rel="noreferrer"> Adriel Leão </a>
             </div>
@@ -15,7 +15,7 @@ const Footer = () => {
             <div>
                 <a href="https://github.com/fagner73" target="_blank" rel="noreferrer">José Fagner </a>
             </div>
-                <a href="https://github.com/rodrygocb" target="_blank" rel="noreferrer">Rodrigo Costa </a></p>
+                <a href="https://github.com/rodrygocb" target="_blank" rel="noreferrer">Rodrigo Costa </a></div>
             <div className=" next-muted">
             © 2021  -  UERN  
              </div>

@@ -6,15 +6,15 @@ import {BrowserRouter, Route, Switch} from 'react-router-dom';
 const Routes = () => {
     return (
         <BrowserRouter>
-            <switch>
+            <Switch>
                 <Route path="/" exact>
                     <Home/>
                 </Route>
                 <Route path="/Formulario" exact>
                     <Formulario/>
                 </Route>
-               
-            </switch>
+
+            </Switch>
         </BrowserRouter>
     );
 }
